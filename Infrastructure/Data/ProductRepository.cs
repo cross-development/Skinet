@@ -6,7 +6,7 @@ namespace Infrastructure.Data;
 
 public class ProductRepository(StoreContext context) : IProductRepository
 {
-    public async Task<IReadOnlyList<Product>> GetProductsAsync(string? brand, string? type)
+    public async Task<IReadOnlyList<Product>> GetProductsAsync(string? brand, string? type, string? sort)
     {
         var query = context.Products.AsQueryable();
 
@@ -19,6 +19,13 @@ public class ProductRepository(StoreContext context) : IProductRepository
         {
             query = query.Where(product => product.Type == type);
         }
+
+        query = sort switch
+        {
+            "priceAsc" => query.OrderBy(product => product.Price),
+            "priceDesc" => query.OrderByDescending(product => product.Price),
+            _ => query.OrderBy(product => product.Name)
+        };
 
         return await query.ToListAsync();
     }

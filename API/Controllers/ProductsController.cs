@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Core.Specifications;
 using Core.Interfaces;
 using Core.Entities;
 
@@ -6,12 +7,14 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController(IProductRepository productRepository) : ControllerBase
+public class ProductsController(IGenericRepository<Product> repository) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brand, string? type, string? sort)
     {
-        var products = await productRepository.GetProductsAsync(brand, type, sort);
+        var specification = new ProductSpecification(brand, type, sort);
+
+        var products = await repository.GetAllWithSpecAsync(specification);
 
         return Ok(products);
     }
@@ -19,7 +22,7 @@ public class ProductsController(IProductRepository productRepository) : Controll
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
-        var product = await productRepository.GetProductByIdAsync(id);
+        var product = await repository.GetByIdAsync(id);
 
         if (product == null)
         {
@@ -32,9 +35,9 @@ public class ProductsController(IProductRepository productRepository) : Controll
     [HttpPost]
     public async Task<ActionResult<Product>> CreateProduct(Product product)
     {
-        productRepository.AddProduct(product);
+        repository.Add(product);
 
-        var wasSuccessfullySaved = await productRepository.SaveChangesAsync();
+        var wasSuccessfullySaved = await repository.SaveAllAsync();
 
         if (!wasSuccessfullySaved)
         {
@@ -52,16 +55,16 @@ public class ProductsController(IProductRepository productRepository) : Controll
             return BadRequest("Cannot update this product");
         }
 
-        var isProductExist = productRepository.ProductExists(id);
+        var isProductExist = repository.Exists(id);
 
         if (!isProductExist)
         {
             return NotFound();
         }
 
-        productRepository.UpdateProduct(product);
+        repository.Update(product);
 
-        var wasSuccessfullySaved = await productRepository.SaveChangesAsync();
+        var wasSuccessfullySaved = await repository.SaveAllAsync();
 
         if (!wasSuccessfullySaved)
         {
@@ -74,16 +77,16 @@ public class ProductsController(IProductRepository productRepository) : Controll
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteProduct(int id)
     {
-        var product = await productRepository.GetProductByIdAsync(id);
+        var product = await repository.GetByIdAsync(id);
 
         if (product == null)
         {
             return NotFound();
         }
 
-        productRepository.DeleteProduct(product);
+        repository.Remove(product);
 
-        var wasSuccessfullySaved = await productRepository.SaveChangesAsync();
+        var wasSuccessfullySaved = await repository.SaveAllAsync();
 
         if (!wasSuccessfullySaved)
         {
@@ -96,7 +99,9 @@ public class ProductsController(IProductRepository productRepository) : Controll
     [HttpGet("brands")]
     public async Task<ActionResult<IEnumerable<string>>> GetBrands()
     {
-        var brands = await productRepository.GetBrandsAsync();
+        var specification = new BrandListSpecification();
+
+        var brands = await repository.GetAllWithSpecAsync(specification);
 
         return Ok(brands);
     }
@@ -104,7 +109,9 @@ public class ProductsController(IProductRepository productRepository) : Controll
     [HttpGet("types")]
     public async Task<ActionResult<IEnumerable<string>>> GetTypes()
     {
-        var types = await productRepository.GetTypesAsync();
+        var specification = new TypeListSpecification();
+
+        var types = await repository.GetAllWithSpecAsync(specification);
 
         return Ok(types);
     }

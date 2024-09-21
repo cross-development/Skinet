@@ -5,18 +5,16 @@ using Core.Entities;
 
 namespace API.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class ProductsController(IGenericRepository<Product> repository) : ControllerBase
+public class ProductsController(IGenericRepository<Product> repository) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brand, string? type, string? sort)
+    public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
+       [FromQuery] ProductSpecificationParams productSpecParams)
     {
-        var specification = new ProductSpecification(brand, type, sort);
+        var specification = new ProductSpecification(productSpecParams);
 
-        var products = await repository.GetAllWithSpecAsync(specification);
-
-        return Ok(products);
+        return await CreatePagedResult(repository, specification, 
+            productSpecParams.PageIndex, productSpecParams.PageSize);
     }
 
     [HttpGet("{id:int}")]

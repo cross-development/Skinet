@@ -63,6 +63,15 @@ public class GenericRepository<T>(StoreContext context) : IGenericRepository<T>
         return context.Set<T>().Any(item => item.Id == id);
     }
 
+    public async Task<int> CountAsync(ISpecification<T> specification)
+    {
+        var query = context.Set<T>().AsQueryable();
+
+        query = specification.ApplyCriteria(query);
+
+        return await query.CountAsync();
+    }
+
     private IQueryable<T> ApplySpecification(ISpecification<T> specification)
     {
         return SpecificationEvaluator<T>.GetQuery(context.Set<T>().AsQueryable(), specification);

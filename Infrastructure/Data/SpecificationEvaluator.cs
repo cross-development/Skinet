@@ -22,6 +22,11 @@ public static class SpecificationEvaluator<T> where T : BaseEntity
             query = query.OrderByDescending(specification.OrderByDescending);
         }
 
+        if (specification.IsPagingEnabled)
+        {
+            query = query.Skip(specification.Skip).Take(specification.Take);
+        }
+
         return query;
     }
 

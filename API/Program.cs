@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using API.Middleware;
 using Infrastructure.Data;
 using Core.Interfaces;
 
@@ -16,6 +17,7 @@ builder.Services.AddDbContext<StoreContext>(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors();
 
 var app = builder.Build();
 
@@ -26,6 +28,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseCors(corsBuilder =>
+{
+    corsBuilder.AllowAnyHeader()
+        .AllowAnyMethod()
+        .WithOrigins("http://localhost:4200", "https://localhost:4200");
+});
 app.MapControllers();
 
 try

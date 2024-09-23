@@ -16,6 +16,12 @@ export class ShopComponent implements OnInit {
   constructor(private readonly shopService: ShopService) {}
 
   public ngOnInit(): void {
+    this.initializeShop();
+  }
+
+  private initializeShop(): void {
+    this.shopService.getTypes();
+    this.shopService.getBrands();
     this.shopService.getProducts().subscribe({
       next: response => (this.products = response.data),
       error: error => console.log(error),

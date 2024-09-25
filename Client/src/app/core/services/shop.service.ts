@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, Subscription } from 'rxjs';
 import { Product } from '../../shared/models/product';
 import { Pagination } from '../../shared/models/pagination';
@@ -9,13 +9,25 @@ import { Pagination } from '../../shared/models/pagination';
 })
 export class ShopService {
   private baseUrl: string = 'https://localhost:5001/api/';
+  private httpClient: HttpClient = inject(HttpClient);
+
   public types: string[] = [];
   public brands: string[] = [];
 
-  constructor(private readonly httpClient: HttpClient) {}
+  public getProducts(brands?: string[], types?: string[]): Observable<Pagination<Product>> {
+    let params = new HttpParams();
 
-  public getProducts(): Observable<Pagination<Product>> {
-    return this.httpClient.get<Pagination<Product>>(this.baseUrl + 'products?pageSize=20');
+    params = params.append('pageSize', 20);
+
+    if (brands && brands.length > 0) {
+      params = params.append('brands', brands.join(','));
+    }
+
+    if (types && types.length > 0) {
+      params = params.append('types', types.join(','));
+    }
+
+    return this.httpClient.get<Pagination<Product>>(this.baseUrl + 'products', { params });
   }
 
   public getTypes(): Subscription | void {

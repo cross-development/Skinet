@@ -14,7 +14,7 @@ export class ShopService {
   public types: string[] = [];
   public brands: string[] = [];
 
-  public getProducts(brands?: string[], types?: string[]): Observable<Pagination<Product>> {
+  public getProducts(brands?: string[], types?: string[], sort?: string): Observable<Pagination<Product>> {
     let params = new HttpParams();
 
     params = params.append('pageSize', 20);
@@ -25,6 +25,10 @@ export class ShopService {
 
     if (types && types.length > 0) {
       params = params.append('types', types.join(','));
+    }
+
+    if (sort) {
+      params = params.append('sort', sort);
     }
 
     return this.httpClient.get<Pagination<Product>>(this.baseUrl + 'products', { params });

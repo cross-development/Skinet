@@ -11,14 +11,32 @@
       (page)="handlePageEvent($event)"
     ></mat-paginator>
 
+    <form
+      #searchForm="ngForm"
+      (ngSubmit)="onSearchChange()"
+      class="relative flex items-center w-full max-w-md mx-4"
+    >
+      <input
+        type="search"
+        name="search"
+        placeholder="Search"
+        class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-lg"
+        [(ngModel)]="shopParams.search"
+      />
+
+      <button mat-icon-button type="submit" class="absolute inset-y-0 right-8 top-2 flex items-center pl-3">
+        <mat-icon>search</mat-icon>
+      </button>
+    </form>
+
     <div class="flex gap-3">
-      <button mat-stroked-button (click)="openFiltersDialog()">
+      <button mat-stroked-button (click)="openFiltersDialog()" class="match-input-height">
         <mat-icon>filter_list</mat-icon>
 
         Filters
       </button>
 
-      <button mat-stroked-button [mat-menu-trigger-for]="sortMenu">
+      <button mat-stroked-button [mat-menu-trigger-for]="sortMenu" class="match-input-height">
         <mat-icon>swap_vert</mat-icon>
 
         Sort

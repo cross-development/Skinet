@@ -1,16 +1,17 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
-import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatListOption, MatSelectionList, MatSelectionListChange } from '@angular/material/list';
-import { ShopService } from '../../core/services/shop.service';
 import { Product } from '../../shared/models/product';
+import { ShopParams } from '../../shared/models/shopParams';
+import { Pagination } from '../../shared/models/pagination';
+import { ShopService } from '../../core/services/shop.service';
 import { ProductItemComponent } from './product-item/product-item.component';
 import { FiltersDialogComponent } from './filters-dialog/filters-dialog.component';
-import { ShopParams } from '../../shared/models/shopParams';
-import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { Pagination } from '../../shared/models/pagination';
 
 @Component({
   selector: 'app-shop',
@@ -24,6 +25,7 @@ import { Pagination } from '../../shared/models/pagination';
     MatListOption,
     MatMenuTrigger,
     MatPaginator,
+    FormsModule,
   ],
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.scss',
@@ -56,6 +58,11 @@ export class ShopComponent implements OnInit {
 
   public ngOnInit(): void {
     this.initializeShop();
+  }
+
+  public onSearchChange(): void {
+    this.shopParams.pageNumber = 1;
+    this.getProducts();
   }
 
   public openFiltersDialog(): void {

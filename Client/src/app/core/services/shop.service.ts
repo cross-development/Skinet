@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, Subscription } from 'rxjs';
 import { Product } from '../../shared/models/product';
 import { Pagination } from '../../shared/models/pagination';
+import { ShopParams } from '../../shared/models/shopParams';
 
 @Injectable({
   providedIn: 'root',
@@ -14,22 +15,23 @@ export class ShopService {
   public types: string[] = [];
   public brands: string[] = [];
 
-  public getProducts(brands?: string[], types?: string[], sort?: string): Observable<Pagination<Product>> {
+  public getProducts(shopParams: ShopParams): Observable<Pagination<Product>> {
     let params = new HttpParams();
 
-    params = params.append('pageSize', 20);
-
-    if (brands && brands.length > 0) {
-      params = params.append('brands', brands.join(','));
+    if (shopParams.brands && shopParams.brands.length > 0) {
+      params = params.append('brands', shopParams.brands.join(','));
     }
 
-    if (types && types.length > 0) {
-      params = params.append('types', types.join(','));
+    if (shopParams.types && shopParams.types.length > 0) {
+      params = params.append('types', shopParams.types.join(','));
     }
 
-    if (sort) {
-      params = params.append('sort', sort);
+    if (shopParams.sort) {
+      params = params.append('sort', shopParams.sort);
     }
+
+    params = params.append('pageSize', shopParams.pageSize);
+    params = params.append('pageIndex', shopParams.pageNumber);
 
     return this.httpClient.get<Pagination<Product>>(this.baseUrl + 'products', { params });
   }

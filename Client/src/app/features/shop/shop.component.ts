@@ -43,19 +43,6 @@ export class ShopComponent implements OnInit {
     { name: 'Price: High-Low', value: 'priceDesc' },
   ];
 
-  private initializeShop(): void {
-    this.shopService.getTypes();
-    this.shopService.getBrands();
-    this.getProducts();
-  }
-
-  private getProducts(): void {
-    this.shopService.getProducts(this.shopParams).subscribe({
-      next: response => (this.products = response),
-      error: error => console.log(error),
-    });
-  }
-
   public ngOnInit(): void {
     this.initializeShop();
   }
@@ -100,5 +87,18 @@ export class ShopComponent implements OnInit {
     this.shopParams.pageNumber = event.pageIndex + 1;
     this.shopParams.pageSize = event.pageSize;
     this.getProducts();
+  }
+
+  private initializeShop(): void {
+    this.shopService.getTypes();
+    this.shopService.getBrands();
+    this.getProducts();
+  }
+
+  private getProducts(): void {
+    this.shopService.getProducts(this.shopParams).subscribe({
+      next: response => (this.products = response),
+      error: error => console.log(error),
+    });
   }
 }

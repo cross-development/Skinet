@@ -10,6 +10,4 @@ import { ShopComponent } from './features/shop/shop.component';
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
-export class AppComponent {
-  public title: string = 'SkiNet';
-}
+export class AppComponent {}

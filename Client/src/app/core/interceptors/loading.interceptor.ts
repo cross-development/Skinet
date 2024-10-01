@@ -4,7 +4,7 @@ import { delay, finalize } from 'rxjs';
 import { BusyService } from '../services/busy.service';
 
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
-  const busyService = inject(BusyService);
+  const busyService: BusyService = inject(BusyService);
 
   busyService.busy();
 

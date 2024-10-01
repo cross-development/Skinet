@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatButton } from '@angular/material/button';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-test-error',
@@ -10,41 +11,40 @@ import { MatButton } from '@angular/material/button';
   styleUrl: './test-error.component.scss',
 })
 export class TestErrorComponent {
-  private baseUrl: string = 'https://localhost:5001/api/';
   private httpClient: HttpClient = inject(HttpClient);
 
   public validationErrors?: string[];
 
   public get400BadRequestError(): void {
-    this.httpClient.get(this.baseUrl + 'buggy/bad-request').subscribe({
+    this.httpClient.get(environment.apiUrl + 'buggy/bad-request').subscribe({
       next: response => console.log(response),
       error: error => console.log(error),
     });
   }
 
   public get400ValidationError(): void {
-    this.httpClient.post(this.baseUrl + 'buggy/validation-error', {}).subscribe({
+    this.httpClient.post(environment.apiUrl + 'buggy/validation-error', {}).subscribe({
       next: response => console.log(response),
       error: error => (this.validationErrors = error),
     });
   }
 
   public get401UnauthorizedError(): void {
-    this.httpClient.get(this.baseUrl + 'buggy/unauthorized').subscribe({
+    this.httpClient.get(environment.apiUrl + 'buggy/unauthorized').subscribe({
       next: response => console.log(response),
       error: error => console.log(error),
     });
   }
 
   public get404NotFoundError(): void {
-    this.httpClient.get(this.baseUrl + 'buggy/not-found').subscribe({
+    this.httpClient.get(environment.apiUrl + 'buggy/not-found').subscribe({
       next: response => console.log(response),
       error: error => console.log(error),
     });
   }
 
   public get500InternalError(): void {
-    this.httpClient.get(this.baseUrl + 'buggy/internal-error').subscribe({
+    this.httpClient.get(environment.apiUrl + 'buggy/internal-error').subscribe({
       next: response => console.log(response),
       error: error => console.log(error),
     });

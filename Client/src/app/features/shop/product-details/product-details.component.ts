@@ -8,6 +8,7 @@ import { MatDivider } from '@angular/material/divider';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { Product } from '../../../shared/models/product';
 import { ShopService } from '../../../core/services/shop.service';
+import { CartService } from '../../../core/services/cart.service';
 
 @Component({
   selector: 'app-product-details',
@@ -19,8 +20,17 @@ import { ShopService } from '../../../core/services/shop.service';
 export class ProductDetailsComponent implements OnInit {
   private shopService: ShopService = inject(ShopService);
   private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private cartService: CartService = inject(CartService);
 
   public product?: Product;
+
+  public ngOnInit(): void {
+    this.loadProduct();
+  }
+
+  public addItemToCart(product: Product): void {
+    this.cartService.addItemToCart(product);
+  }
 
   private loadProduct(): void {
     const productId = this.activatedRoute.snapshot.paramMap.get('id');
@@ -31,9 +41,5 @@ export class ProductDetailsComponent implements OnInit {
       next: product => (this.product = product),
       error: error => console.log(error),
     });
-  }
-
-  public ngOnInit(): void {
-    this.loadProduct();
   }
 }

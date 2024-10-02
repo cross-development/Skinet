@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using API.Middleware;
-using Infrastructure.Data;
+using Core.Entities;
 using Core.Interfaces;
+using Infrastructure.Data;
 using Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,9 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(config =>
 
     return ConnectionMultiplexer.Connect(configuration);
 });
+
+builder.Services.AddAuthentication();
+builder.Services.AddIdentityApiEndpoints<AppUser>().AddEntityFrameworkStores<StoreContext>();
 
 builder.Services.AddDbContext<StoreContext>(options =>
 {
@@ -48,6 +52,7 @@ app.UseCors(corsBuilder =>
         .WithOrigins("http://localhost:4200", "https://localhost:4200");
 });
 app.MapControllers();
+app.MapIdentityApi<AppUser>();
 
 try
 {

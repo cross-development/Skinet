@@ -1,6 +1,6 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Subscription } from 'rxjs';
+import { map, Observable, Subscription } from 'rxjs';
 import { Product } from '../../shared/models/product';
 import { Cart, CartItem } from '../../shared/models/cart';
 import { environment } from '../../../environments/environment';
@@ -12,11 +12,18 @@ export class CartService {
   private httpClient: HttpClient = inject(HttpClient);
 
   public cart = signal<Cart | null>(null);
+  public itemCount = computed(() => {
+    return this.cart()?.items.reduce((sum, item) => sum + item.quantity, 0);
+  });
 
-  public getCart(id: string): Subscription {
-    return this.httpClient.get<Cart>(environment.apiUrl + 'cart?id=' + id).subscribe({
-      next: cart => this.cart.set(cart),
-    });
+  public getCart(id: string): Observable<Cart> {
+    return this.httpClient.get<Cart>(environment.apiUrl + 'cart?id=' + id).pipe(
+      map(cart => {
+        this.cart.set(cart);
+
+        return cart;
+      }),
+    );
   }
 
   public setCart(cart: Cart): Subscription {

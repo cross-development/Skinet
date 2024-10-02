@@ -1,8 +1,9 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, Subscription } from 'rxjs';
 import { Product } from '../../shared/models/product';
 import { Cart, CartItem } from '../../shared/models/cart';
+import { ProductTotals } from '../../shared/models/productTotals';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -11,9 +12,21 @@ import { environment } from '../../../environments/environment';
 export class CartService {
   private httpClient: HttpClient = inject(HttpClient);
 
-  public cart = signal<Cart | null>(null);
-  public itemCount = computed(() => {
+  public cart: WritableSignal<Cart | null> = signal<Cart | null>(null);
+  public itemCount: Signal<number | undefined> = computed(() => {
     return this.cart()?.items.reduce((sum, item) => sum + item.quantity, 0);
+  });
+  public totals: Signal<ProductTotals | null> = computed(() => {
+    const cart = this.cart();
+
+    if (!cart) return null;
+
+    const shipping = 0;
+    const discount = 0;
+    const subtotal = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const total = subtotal + shipping - discount;
+
+    return { subtotal, shipping, discount, total };
   });
 
   public getCart(id: string): Observable<Cart> {
@@ -32,7 +45,7 @@ export class CartService {
     });
   }
 
-  public addItemToCart(item: CartItem | Product, quantity: number = 1) {
+  public addItemToCart(item: CartItem | Product, quantity: number = 1): void {
     const cart = this.cart() ?? this.createCart();
 
     if (this.isProduct(item)) {
@@ -42,6 +55,38 @@ export class CartService {
     cart.items = this.addOrUpdateItem(cart.items, item, quantity);
 
     this.setCart(cart);
+  }
+
+  public removeItemFromCart(productId: number, quantity = 1): void {
+    const cart = this.cart();
+
+    if (!cart) return;
+
+    const index = cart.items.findIndex(item => item.productId === productId);
+
+    if (index === -1) return;
+
+    if (cart.items[index].quantity > quantity) {
+      cart.items[index].quantity -= quantity;
+    } else {
+      cart.items.splice(index, 1);
+    }
+
+    if (cart.items.length === 0) {
+      this.deleteCart();
+    } else {
+      this.setCart(cart);
+    }
+  }
+
+  public deleteCart(): void {
+    this.httpClient.delete(environment.apiUrl + 'cart?id=' + this.cart()?.id).subscribe({
+      next: () => {
+        localStorage.removeItem('cart_id');
+
+        this.cart.set(null);
+      },
+    });
   }
 
   private isProduct(item: CartItem | Product): item is Product {

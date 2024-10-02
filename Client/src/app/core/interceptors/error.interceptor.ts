@@ -5,8 +5,8 @@ import { catchError, throwError } from 'rxjs';
 import { SnackbarService } from '../services/snackbar.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const router: Router = inject(Router);
-  const snackbar: SnackbarService = inject(SnackbarService);
+  const router = inject(Router);
+  const snackbar = inject(SnackbarService);
 
   return next(req).pipe(
     catchError((errorResponse: HttpErrorResponse) => {

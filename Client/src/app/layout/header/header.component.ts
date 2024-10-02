@@ -18,6 +18,11 @@ export class HeaderComponent {
   private busyService: BusyService = inject(BusyService);
   private cartService: CartService = inject(CartService);
 
-  public loading: boolean = this.busyService.loading;
-  public itemCount: Signal<number | undefined> = this.cartService.itemCount;
+  public loading: boolean = false;
+  public itemCount: Signal<number | undefined>;
+
+  constructor() {
+    this.loading = this.busyService.loading;
+    this.itemCount = this.cartService.itemCount;
+  }
 }

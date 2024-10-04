@@ -21,7 +21,7 @@ export class LoginComponent {
 
   public loginForm = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]],
+    password: ['', Validators.required],
   });
 
   public onSubmit(): void {

@@ -12,7 +12,7 @@
 
     <div class="flex gap-3 align-middle">
       <a
-        matBadge="{{ itemCount() }}"
+        matBadge="{{ itemCount }}"
         matBadgeSize="large"
         routerLink="/cart"
         routerLinkActive="active"
@@ -21,9 +21,17 @@
         <mat-icon>shopping_cart</mat-icon>
       </a>
 
-      <button mat-stroked-button>Login</button>
+      @if(currentUser) {
+      <button mat-button [matMenuTriggerFor]="menu">
+        <mat-icon>arrow_drop_down</mat-icon>
 
-      <button mat-stroked-button>Register</button>
+        <span>{{ currentUser.email }}</span>
+      </button>
+      } @else {
+      <button mat-stroked-button routerLink="/account/login">Login</button>
+
+      <button mat-stroked-button routerLink="/account/register">Register</button>
+      }
     </div>
   </div>
 </header>
@@ -31,3 +39,25 @@
 @if (loading) {
 <mat-progress-bar mode="indeterminate" class="fixed top-20 z-50"></mat-progress-bar>
 }
+
+<mat-menu #menu="matMenu" class="px-3">
+  <button class="px-3" mat-menu-item routerLink="/cart">
+    <mat-icon>shopping_cart</mat-icon>
+
+    My cart
+  </button>
+
+  <button class="px-3" mat-menu-item routerLink="/orders">
+    <mat-icon>history</mat-icon>
+
+    My orders
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <button class="px-3" mat-menu-item (click)="logout()">
+    <mat-icon>logout</mat-icon>
+
+    Logout
+  </button>
+</mat-menu>

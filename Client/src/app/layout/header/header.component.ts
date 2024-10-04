@@ -1,28 +1,56 @@
-import { Component, inject, Signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { MatBadge } from '@angular/material/badge';
 import { MatButton } from '@angular/material/button';
+import { MatDivider } from '@angular/material/divider';
 import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { BusyService } from '../../core/services/busy.service';
 import { CartService } from '../../core/services/cart.service';
+import { AccountService } from '../../core/services/account.service';
+import { User } from '../../shared/models/user';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [MatIcon, MatButton, MatBadge, RouterLink, RouterLinkActive, MatProgressBar],
+  imports: [
+    MatIcon,
+    MatButton,
+    MatBadge,
+    RouterLink,
+    RouterLinkActive,
+    MatProgressBar,
+    MatMenuTrigger,
+    MatMenu,
+    MatDivider,
+    MatMenuItem,
+  ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
 export class HeaderComponent {
+  private router: Router = inject(Router);
   private busyService: BusyService = inject(BusyService);
   private cartService: CartService = inject(CartService);
+  private accountService: AccountService = inject(AccountService);
 
   public loading: boolean = false;
-  public itemCount: Signal<number | undefined>;
+  public itemCount: number | undefined;
+  public currentUser: User | null;
 
   constructor() {
     this.loading = this.busyService.loading;
-    this.itemCount = this.cartService.itemCount;
+    this.itemCount = this.cartService.itemCount();
+    this.currentUser = this.accountService.currentUser();
+  }
+
+  public logout(): void {
+    this.accountService.logout().subscribe({
+      next: () => {
+        this.accountService.currentUser.set(null);
+        this.router.navigateByUrl('/');
+      },
+    });
   }
 }

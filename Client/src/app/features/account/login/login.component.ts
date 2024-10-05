@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCard } from '@angular/material/card';
 import { MatInput } from '@angular/material/input';
@@ -18,6 +18,17 @@ export class LoginComponent {
   private router: Router = inject(Router);
   private formBuilder: FormBuilder = inject(FormBuilder);
   private accountService: AccountService = inject(AccountService);
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+
+  public returnUrl = '/shop';
+
+  constructor() {
+    const url: string = this.activatedRoute.snapshot.queryParams['returnUrl'];
+
+    if (url) {
+      this.returnUrl = url;
+    }
+  }
 
   public loginForm = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
@@ -28,7 +39,7 @@ export class LoginComponent {
     this.accountService.login(this.loginForm.value).subscribe({
       next: () => {
         this.accountService.getUserInfo().subscribe();
-        this.router.navigateByUrl('/shop');
+        this.router.navigateByUrl(this.returnUrl);
       },
     });
   }

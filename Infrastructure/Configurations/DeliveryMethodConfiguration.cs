@@ -4,12 +4,12 @@ using Core.Entities;
 
 namespace Infrastructure.Configurations;
 
-public class ProductConfigurations : IEntityTypeConfiguration<Product>
+public class DeliveryMethodConfiguration : IEntityTypeConfiguration<DeliveryMethod>
 {
-    public void Configure(EntityTypeBuilder<Product> builder)
+    public void Configure(EntityTypeBuilder<DeliveryMethod> builder)
     {
         builder
-            .Property(product => product.Price)
+            .Property(delivery => delivery.Price)
             .HasColumnType("decimal(18,2)");
     }
 }

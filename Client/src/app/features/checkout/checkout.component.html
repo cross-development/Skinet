@@ -1,7 +1,15 @@
 <div class="flex w-full items-start gap-6 mt-32">
   <div class="w-3/4">
     <mat-stepper #stepper class="bg-white border border-gray-200 shadow-sm">
-      <mat-step label="Address">Address form</mat-step>
+      <mat-step label="Address">
+        <div id="address-element"></div>
+
+        <div class="flex justify-between mt-6">
+          <button routerLink="/shop" mat-stroked-button>Continue shopping</button>
+
+          <button matStepperNext mat-stroked-button>Next</button>
+        </div>
+      </mat-step>
 
       <mat-step label="Shipping">Delivery form</mat-step>
 

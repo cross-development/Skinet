@@ -9,6 +9,7 @@ import {
   StripeElements,
 } from '@stripe/stripe-js';
 import { CartService } from './cart.service';
+import { AccountService } from './account.service';
 import { Cart } from '../../shared/models/cart';
 import { environment } from '../../../environments/environment';
 
@@ -21,6 +22,7 @@ export class StripeService {
   private stripePromise: Promise<Stripe | null>;
   private httpClient: HttpClient = inject(HttpClient);
   private cartService: CartService = inject(CartService);
+  private accountService: AccountService = inject(AccountService);
 
   constructor() {
     this.stripePromise = loadStripe(environment.stripePublicKey);
@@ -54,8 +56,28 @@ export class StripeService {
       const elements = await this.initializeStripeElements();
 
       if (elements) {
+        const user = this.accountService.currentUser();
+
+        const defaultValues: StripeAddressElementOptions['defaultValues'] = {};
+
+        if (user) {
+          defaultValues.name = `${user.firstName} ${user.lastName}`;
+        }
+
+        if (user?.address) {
+          defaultValues.address = {
+            line1: user.address.line1,
+            line2: user.address.line2,
+            city: user.address.city,
+            state: user.address.state,
+            country: user.address.country,
+            postal_code: user.address.postalCode,
+          };
+        }
+
         const options: StripeAddressElementOptions = {
           mode: 'shipping',
+          defaultValues,
         };
 
         this.addressElement = elements.create('address', options);
@@ -81,5 +103,10 @@ export class StripeService {
         return cart;
       }),
     );
+  }
+
+  public disposeElements(): void {
+    this.stripeElements = undefined;
+    this.addressElement = undefined;
   }
 }

@@ -1,24 +1,31 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { MatStepperModule } from '@angular/material/stepper';
-import { OrderSummaryComponent } from '../../shared/components/order-summary/order-summary.component';
-import { MatButton } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
-import { StripeService } from '../../core/services/stripe.service';
+import { MatButton } from '@angular/material/button';
+import { MatStepperModule } from '@angular/material/stepper';
+import { StepperSelectionEvent } from '@angular/cdk/stepper';
+import { MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
+import { firstValueFrom } from 'rxjs';
 import { StripeAddressElement } from '@stripe/stripe-js';
+import { StripeService } from '../../core/services/stripe.service';
+import { AccountService } from '../../core/services/account.service';
 import { SnackbarService } from '../../core/services/snackbar.service';
+import { Address } from '../../shared/models/user';
+import { OrderSummaryComponent } from '../../shared/components/order-summary/order-summary.component';
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [OrderSummaryComponent, MatStepperModule, MatButton, RouterLink],
+  imports: [OrderSummaryComponent, MatStepperModule, MatButton, MatCheckboxModule, RouterLink],
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.scss',
 })
 export class CheckoutComponent implements OnInit, OnDestroy {
   private stripeService: StripeService = inject(StripeService);
+  private accountService: AccountService = inject(AccountService);
   private snackbarService: SnackbarService = inject(SnackbarService);
 
   public stripeAddressElement?: StripeAddressElement;
+  public saveAddress: boolean = false;
 
   public async ngOnInit(): Promise<void> {
     try {
@@ -32,5 +39,35 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.stripeService.disposeElements();
+  }
+
+  public onSaveAddressCheckboxChange(event: MatCheckboxChange): void {
+    this.saveAddress = event.checked;
+  }
+
+  public async onStepChange(event: StepperSelectionEvent): Promise<void> {
+    if (event.selectedIndex === 1 && this.saveAddress) {
+      const address = await this.getAddressFromStripeAddress();
+
+      address && firstValueFrom(this.accountService.updateAddress(address));
+    }
+  }
+
+  private async getAddressFromStripeAddress(): Promise<Address | null> {
+    const result = await this.stripeAddressElement?.getValue();
+    const address = result?.value.address;
+
+    if (!address) {
+      return null;
+    }
+
+    return {
+      line1: address.line1,
+      line2: address.line2 || undefined,
+      city: address.city,
+      country: address.country,
+      state: address.state,
+      postalCode: address.postal_code,
+    };
   }
 }

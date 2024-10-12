@@ -1,6 +1,6 @@
 import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { Address, User } from '../../shared/models/user';
 import { AuthState } from '../../shared/models/authState';
 import { environment } from '../../../environments/environment';
@@ -38,7 +38,17 @@ export class AccountService {
   }
 
   public updateAddress(address: Address): Observable<Address> {
-    return this.httpClient.post<Address>(environment + 'account/address', address);
+    return this.httpClient.post<Address>(environment + 'account/address', address).pipe(
+      tap(() => {
+        this.currentUser.update(user => {
+          if (user) {
+            user.address = address;
+          }
+
+          return user;
+        });
+      }),
+    );
   }
 
   public getAuthState(): Observable<AuthState> {

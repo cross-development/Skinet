@@ -9,13 +9,21 @@ import { StripeAddressElement } from '@stripe/stripe-js';
 import { StripeService } from '../../core/services/stripe.service';
 import { AccountService } from '../../core/services/account.service';
 import { SnackbarService } from '../../core/services/snackbar.service';
+import { CheckoutDeliveryComponent } from './checkout-delivery/checkout-delivery.component';
 import { Address } from '../../shared/models/user';
 import { OrderSummaryComponent } from '../../shared/components/order-summary/order-summary.component';
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [OrderSummaryComponent, MatStepperModule, MatButton, MatCheckboxModule, RouterLink],
+  imports: [
+    RouterLink,
+    MatButton,
+    MatStepperModule,
+    MatCheckboxModule,
+    OrderSummaryComponent,
+    CheckoutDeliveryComponent,
+  ],
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.scss',
 })
@@ -50,6 +58,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       const address = await this.getAddressFromStripeAddress();
 
       address && firstValueFrom(this.accountService.updateAddress(address));
+    }
+
+    if (event.selectedIndex == 2) {
+      await firstValueFrom(this.stripeService.createOrUpdatePaymentIntent());
     }
   }
 

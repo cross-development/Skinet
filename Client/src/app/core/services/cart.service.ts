@@ -4,6 +4,7 @@ import { map, Observable, Subscription } from 'rxjs';
 import { Product } from '../../shared/models/product';
 import { Cart, CartItem } from '../../shared/models/cart';
 import { ProductTotals } from '../../shared/models/productTotals';
+import { DeliveryMethod } from '../../shared/models/deliveryMethod';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -13,15 +14,17 @@ export class CartService {
   private httpClient: HttpClient = inject(HttpClient);
 
   public cart: WritableSignal<Cart | null> = signal<Cart | null>(null);
+  public selectedDelivery: WritableSignal<DeliveryMethod | null> = signal<DeliveryMethod | null>(null);
   public itemCount: Signal<number | undefined> = computed(() => {
     return this.cart()?.items.reduce((sum, item) => sum + item.quantity, 0);
   });
   public totals: Signal<ProductTotals | null> = computed(() => {
     const cart = this.cart();
+    const delivery = this.selectedDelivery();
 
     if (!cart) return null;
 
-    const shipping = 0;
+    const shipping = delivery ? delivery.price : 0;
     const discount = 0;
     const subtotal = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const total = subtotal + shipping - discount;

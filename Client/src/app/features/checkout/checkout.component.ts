@@ -1,8 +1,8 @@
 import { Component, inject, OnDestroy, OnInit, signal, Signal, WritableSignal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { MatButton } from '@angular/material/button';
-import { MatStepperModule } from '@angular/material/stepper';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
 import { firstValueFrom } from 'rxjs';
@@ -11,6 +11,7 @@ import {
   StripePaymentElement,
   StripeAddressElementChangeEvent,
   StripePaymentElementChangeEvent,
+  ConfirmationToken,
 } from '@stripe/stripe-js';
 import { CartService } from '../../core/services/cart.service';
 import { StripeService } from '../../core/services/stripe.service';
@@ -40,6 +41,7 @@ import { OrderSummaryComponent } from '../../shared/components/order-summary/ord
   styleUrl: './checkout.component.scss',
 })
 export class CheckoutComponent implements OnInit, OnDestroy {
+  private router: Router = inject(Router);
   private cartService: CartService = inject(CartService);
   private stripeService: StripeService = inject(StripeService);
   private accountService: AccountService = inject(AccountService);
@@ -54,6 +56,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     card: false,
     delivery: false,
   });
+  public confirmationToken?: ConfirmationToken;
 
   public async ngOnInit(): Promise<void> {
     try {
@@ -87,6 +90,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     if (event.selectedIndex == 2) {
       await firstValueFrom(this.stripeService.createOrUpdatePaymentIntent());
     }
+
+    if (event.selectedIndex === 3) {
+      await this.getConfirmationToken();
+    }
   }
 
   public handleDeliveryChange(event: boolean): void {
@@ -95,6 +102,42 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
       return state;
     });
+  }
+
+  public async getConfirmationToken(): Promise<void> {
+    try {
+      if (Object.values(this.completionStatus()).every(status => status)) {
+        const result = await this.stripeService.createConfirmationToken();
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+
+        this.confirmationToken = result.confirmationToken;
+      }
+    } catch (error: any) {
+      this.snackbarService.error(error.message);
+    }
+  }
+
+  public async confirmPayment(stepper: MatStepper): Promise<void> {
+    try {
+      if (this.confirmationToken) {
+        const result = await this.stripeService.confirmPayment(this.confirmationToken);
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        } else {
+          this.cartService.deleteCart();
+          this.cartService.selectedDelivery.set(null);
+          this.router.navigateByUrl('/checkout/success');
+        }
+      }
+    } catch (error: any) {
+      this.snackbarService.error(error.message || 'Something wend wrong');
+
+      stepper.previous();
+    }
   }
 
   private handleAddressChange = (event: StripeAddressElementChangeEvent): void => {

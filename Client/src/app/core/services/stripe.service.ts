@@ -2,7 +2,10 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, map, Observable } from 'rxjs';
 import {
+  ConfirmationToken,
+  ConfirmationTokenResult,
   loadStripe,
+  PaymentIntentResult,
   Stripe,
   StripeAddressElement,
   StripeAddressElementOptions,
@@ -105,6 +108,28 @@ export class StripeService {
     return this.paymentElement;
   }
 
+  public async confirmPayment(confirmationToken: ConfirmationToken): Promise<PaymentIntentResult> {
+    const stripe = await this.getStripeInstance();
+    const elements = await this.initializeStripeElements();
+    const result = await elements?.submit();
+
+    if (result?.error) {
+      throw new Error(result.error.message);
+    }
+
+    const clientSecret = this.cartService.cart()?.clientSecret;
+
+    if (stripe && clientSecret) {
+      return await stripe.confirmPayment({
+        clientSecret,
+        confirmParams: { confirmation_token: confirmationToken.id },
+        redirect: 'if_required',
+      });
+    } else {
+      throw new Error('Unable to load Stripe');
+    }
+  }
+
   public createOrUpdatePaymentIntent(): Observable<Cart> {
     const cart = this.cartService.cart();
 
@@ -119,6 +144,22 @@ export class StripeService {
         return cart;
       }),
     );
+  }
+
+  public async createConfirmationToken(): Promise<ConfirmationTokenResult> {
+    const stripe = await this.getStripeInstance();
+    const elements = await this.initializeStripeElements();
+    const result = await elements?.submit();
+
+    if (result?.error) {
+      throw new Error(result.error.message);
+    }
+
+    if (stripe && elements) {
+      return await stripe.createConfirmationToken({ elements });
+    } else {
+      throw new Error('Stripe not available');
+    }
   }
 
   public disposeElements(): void {

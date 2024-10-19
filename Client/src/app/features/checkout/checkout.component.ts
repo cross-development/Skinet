@@ -2,8 +2,9 @@ import { Component, inject, OnDestroy, OnInit, signal, Signal, WritableSignal } 
 import { Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { MatButton } from '@angular/material/button';
-import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
 import { firstValueFrom } from 'rxjs';
 import {
@@ -33,6 +34,7 @@ import { OrderSummaryComponent } from '../../shared/components/order-summary/ord
     MatButton,
     MatStepperModule,
     MatCheckboxModule,
+    MatProgressSpinnerModule,
     OrderSummaryComponent,
     CheckoutReviewComponent,
     CheckoutDeliveryComponent,
@@ -57,6 +59,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     delivery: false,
   });
   public confirmationToken?: ConfirmationToken;
+  public loading: boolean = false;
 
   public async ngOnInit(): Promise<void> {
     try {
@@ -121,6 +124,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   public async confirmPayment(stepper: MatStepper): Promise<void> {
+    this.loading = true;
+
     try {
       if (this.confirmationToken) {
         const result = await this.stripeService.confirmPayment(this.confirmationToken);
@@ -137,6 +142,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.snackbarService.error(error.message || 'Something wend wrong');
 
       stepper.previous();
+    } finally {
+      this.loading = false;
     }
   }
 

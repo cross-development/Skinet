@@ -5,10 +5,7 @@ using Core.Entities;
 
 namespace API.Controllers;
 
-public class PaymentsController(
-    IPaymentService paymentService,
-    IGenericRepository<DeliveryMethod> deliveryRepository)
-    : BaseApiController
+public class PaymentsController(IPaymentService paymentService, IUnitOfWork unitOfWork) : BaseApiController
 {
     [Authorize]
     [HttpPost("{cartId}")]
@@ -27,7 +24,7 @@ public class PaymentsController(
     [HttpGet("delivery-methods")]
     public async Task<ActionResult<IEnumerable<DeliveryMethod>>> GetDeliveryMethods()
     {
-        var deliveryMethods = await deliveryRepository.GetAllAsync();
+        var deliveryMethods = await unitOfWork.Repository<DeliveryMethod>().GetAllAsync();
 
         return Ok(deliveryMethods);
     }

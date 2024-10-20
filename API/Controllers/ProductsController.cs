@@ -5,7 +5,7 @@ using Core.Entities;
 
 namespace API.Controllers;
 
-public class ProductsController(IGenericRepository<Product> repository) : BaseApiController
+public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
@@ -13,14 +13,14 @@ public class ProductsController(IGenericRepository<Product> repository) : BaseAp
     {
         var specification = new ProductSpecification(productSpecParams);
 
-        return await CreatePagedResult(repository, specification, 
+        return await CreatePagedResult(unitOfWork.Repository<Product>(), specification,
             productSpecParams.PageIndex, productSpecParams.PageSize);
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
-        var product = await repository.GetByIdAsync(id);
+        var product = await unitOfWork.Repository<Product>().GetByIdAsync(id);
 
         if (product == null)
         {
@@ -33,9 +33,9 @@ public class ProductsController(IGenericRepository<Product> repository) : BaseAp
     [HttpPost]
     public async Task<ActionResult<Product>> CreateProduct(Product product)
     {
-        repository.Add(product);
+        unitOfWork.Repository<Product>().Add(product);
 
-        var wasSuccessfullySaved = await repository.SaveAllAsync();
+        var wasSuccessfullySaved = await unitOfWork.Complete();
 
         if (!wasSuccessfullySaved)
         {
@@ -53,16 +53,16 @@ public class ProductsController(IGenericRepository<Product> repository) : BaseAp
             return BadRequest("Cannot update this product");
         }
 
-        var isProductExist = repository.Exists(id);
+        var isProductExist = unitOfWork.Repository<Product>().Exists(id);
 
         if (!isProductExist)
         {
             return NotFound();
         }
 
-        repository.Update(product);
+        unitOfWork.Repository<Product>().Update(product);
 
-        var wasSuccessfullySaved = await repository.SaveAllAsync();
+        var wasSuccessfullySaved = await unitOfWork.Complete();
 
         if (!wasSuccessfullySaved)
         {
@@ -75,16 +75,16 @@ public class ProductsController(IGenericRepository<Product> repository) : BaseAp
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteProduct(int id)
     {
-        var product = await repository.GetByIdAsync(id);
+        var product = await unitOfWork.Repository<Product>().GetByIdAsync(id);
 
         if (product == null)
         {
             return NotFound();
         }
 
-        repository.Remove(product);
+        unitOfWork.Repository<Product>().Remove(product);
 
-        var wasSuccessfullySaved = await repository.SaveAllAsync();
+        var wasSuccessfullySaved = await unitOfWork.Complete();
 
         if (!wasSuccessfullySaved)
         {
@@ -99,7 +99,7 @@ public class ProductsController(IGenericRepository<Product> repository) : BaseAp
     {
         var specification = new BrandListSpecification();
 
-        var brands = await repository.GetAllWithSpecAsync(specification);
+        var brands = await unitOfWork.Repository<Product>().GetAllWithSpecAsync(specification);
 
         return Ok(brands);
     }
@@ -109,7 +109,7 @@ public class ProductsController(IGenericRepository<Product> repository) : BaseAp
     {
         var specification = new TypeListSpecification();
 
-        var types = await repository.GetAllWithSpecAsync(specification);
+        var types = await unitOfWork.Repository<Product>().GetAllWithSpecAsync(specification);
 
         return Ok(types);
     }

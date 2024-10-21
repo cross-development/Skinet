@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Core.Entities.OrderAggregate;
+using Core.Specifications;
 using Core.Interfaces;
 using Core.Entities;
 using API.Extensions;
@@ -84,6 +85,31 @@ public class OrdersController(ICartService cartService, IUnitOfWork unitOfWork) 
             return BadRequest("Problem creating order");
         }
 
-        return order;
+        return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<Order>>> GetOrdersForUser()
+    {
+        var spec = new OrderSpecification(User.GetEmail());
+
+        var orders = await unitOfWork.Repository<Order>().GetAllWithSpecAsync(spec);
+
+        return Ok(orders);
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<Order>> GetOrderById(int id)
+    {
+        var spec = new OrderSpecification(User.GetEmail(), id);
+
+        var order = await unitOfWork.Repository<Order>().GetEntityWithSpecAsync(spec);
+
+        if (order == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(order);
     }
 }

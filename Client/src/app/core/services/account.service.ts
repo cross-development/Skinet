@@ -1,6 +1,7 @@
 import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
+import { SignalrService } from './signalr.service';
 import { Address, User } from '../../shared/models/user';
 import { AuthState } from '../../shared/models/authState';
 import { environment } from '../../../environments/environment';
@@ -10,6 +11,7 @@ import { environment } from '../../../environments/environment';
 })
 export class AccountService {
   private httpClient: HttpClient = inject(HttpClient);
+  private signalrService: SignalrService = inject(SignalrService);
 
   public currentUser: WritableSignal<User | null> = signal<User | null>(null);
 
@@ -17,7 +19,9 @@ export class AccountService {
     let params = new HttpParams();
     params = params.append('useCookies', true);
 
-    return this.httpClient.post<User>(environment.apiUrl + 'login', values, { params });
+    return this.httpClient
+      .post<User>(environment.apiUrl + 'login', values, { params })
+      .pipe(tap({ next: () => this.signalrService.createHubConnection() }));
   }
 
   public register(values: any): Observable<void> {
@@ -34,19 +38,23 @@ export class AccountService {
   }
 
   public logout(): Observable<void> {
-    return this.httpClient.post<void>(environment.apiUrl + 'account/logout', {});
+    return this.httpClient
+      .post<void>(environment.apiUrl + 'account/logout', {})
+      .pipe(tap({ next: () => this.signalrService.stopHubConnection() }));
   }
 
   public updateAddress(address: Address): Observable<Address> {
     return this.httpClient.post<Address>(environment + 'account/address', address).pipe(
-      tap(() => {
-        this.currentUser.update(user => {
-          if (user) {
-            user.address = address;
-          }
+      tap({
+        next: () => {
+          this.currentUser.update(user => {
+            if (user) {
+              user.address = address;
+            }
 
-          return user;
-        });
+            return user;
+          });
+        },
       }),
     );
   }

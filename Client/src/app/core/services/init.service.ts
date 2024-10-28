@@ -1,7 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { forkJoin, Observable, of } from 'rxjs';
+import { forkJoin, Observable, of, tap } from 'rxjs';
 import { CartService } from './cart.service';
 import { AccountService } from './account.service';
+import { SignalrService } from './signalr.service';
 import { Cart } from '../../shared/models/cart';
 import { User } from '../../shared/models/user';
 
@@ -10,6 +11,7 @@ import { User } from '../../shared/models/user';
 })
 export class InitService {
   private cartService: CartService = inject(CartService);
+  private signalrService: SignalrService = inject(SignalrService);
   private accountService: AccountService = inject(AccountService);
 
   public init(): Observable<{ cart: Cart | null; user: User }> {
@@ -18,7 +20,15 @@ export class InitService {
 
     return forkJoin({
       cart: cart$,
-      user: this.accountService.getUserInfo(),
+      user: this.accountService.getUserInfo().pipe(
+        tap({
+          next: user => {
+            if (user) {
+              this.signalrService.createHubConnection();
+            }
+          },
+        }),
+      ),
     });
   }
 }

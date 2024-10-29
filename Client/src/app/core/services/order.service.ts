@@ -10,6 +10,8 @@ import { environment } from '../../../environments/environment';
 export class OrderService {
   private httpClient: HttpClient = inject(HttpClient);
 
+  public orderComplete: boolean = false;
+
   public createOrder(orderToCreate: OrderToCreate): Observable<Order> {
     return this.httpClient.post<Order>(environment.apiUrl + 'orders', orderToCreate);
   }

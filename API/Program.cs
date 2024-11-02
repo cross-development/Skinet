@@ -57,11 +57,17 @@ app.UseCors(corsBuilder =>
         .AllowCredentials()
         .WithOrigins("http://localhost:4200", "https://localhost:4200");
 });
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapControllers();
 app.MapGroup("api").MapIdentityApi<AppUser>();
 app.MapHub<NotificationHub>("/hub/notifications");
+app.MapFallbackToController("Index", "Fallback");
 
 try
 {

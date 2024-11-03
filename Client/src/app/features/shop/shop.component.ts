@@ -6,18 +6,20 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatListOption, MatSelectionList, MatSelectionListChange } from '@angular/material/list';
-import { Product } from '../../shared/models/product';
-import { ShopParams } from '../../shared/models/shopParams';
-import { Pagination } from '../../shared/models/pagination';
 import { ShopService } from '../../core/services/shop.service';
 import { ProductItemComponent } from './product-item/product-item.component';
 import { FiltersDialogComponent } from './filters-dialog/filters-dialog.component';
+import { Product } from '../../shared/models/product';
+import { Pagination } from '../../shared/models/pagination';
+import { ShopParams } from '../../shared/models/shopParams';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-shop',
   standalone: true,
   imports: [
     ProductItemComponent,
+    EmptyStateComponent,
     MatButton,
     MatIcon,
     MatMenu,
@@ -45,6 +47,11 @@ export class ShopComponent implements OnInit {
 
   public ngOnInit(): void {
     this.initializeShop();
+  }
+
+  public resetFilters(): void {
+    this.shopParams = new ShopParams();
+    this.getProducts();
   }
 
   public onSearchChange(): void {

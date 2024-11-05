@@ -130,15 +130,20 @@ export class StripeService {
     }
   }
 
-  public createOrUpdatePaymentIntent(): Observable<Cart> {
+  public createOrUpdatePaymentIntent() {
     const cart = this.cartService.cart();
+    const hasClientSecret = !!cart?.clientSecret;
 
     if (!cart) {
       throw new Error('Problem with cart');
     }
 
     return this.httpClient.post<Cart>(environment.apiUrl + 'payment/' + cart.id, {}).pipe(
-      map(cart => {
+      map(async cart => {
+        if (hasClientSecret) {
+          return cart;
+        }
+
         this.cartService.setCart(cart);
 
         return cart;

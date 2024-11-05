@@ -18,6 +18,7 @@ public static class OrderMappingExtensions
             DeliveryMethod = order.DeliveryMethod.Description,
             ShippingPrice = order.DeliveryMethod.Price,
             OrderItems = order.OrderItems.Select(orderItem => orderItem.ToDto()).ToList(),
+            Discount = order.Discount,
             Subtotal = order.Subtotal,
             Total = order.GetTotal(),
             Status = order.Status.ToString(),

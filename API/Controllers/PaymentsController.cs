@@ -83,7 +83,9 @@ public class PaymentsController(
             var order = await unitOfWork.Repository<Order>().GetEntityWithSpecAsync(specification)
                         ?? throw new Exception("Order not found");
 
-            order.Status = (long)order.GetTotal() * 100 != intent.Amount
+            var orderTotalInCents = (long)Math.Round(order.GetTotal() * 100, MidpointRounding.AwayFromZero);
+
+            order.Status = orderTotalInCents != intent.Amount
                 ? OrderStatus.PaymentMismatch
                 : OrderStatus.PaymentReceived;
 

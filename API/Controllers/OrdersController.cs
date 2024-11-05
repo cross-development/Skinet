@@ -70,6 +70,7 @@ public class OrdersController(ICartService cartService, IUnitOfWork unitOfWork) 
             OrderItems = items,
             DeliveryMethod = deliveryMethod,
             ShippingAddress = createOrderDto.ShippingAddress,
+            Discount = createOrderDto.Discount,
             Subtotal = items.Sum(item => item.Price * item.Quantity),
             PaymentSummary = createOrderDto.PaymentSummary,
             PaymentIntentId = cart.PaymentIntentId,

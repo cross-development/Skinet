@@ -12,6 +12,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.OwnsOne(order => order.PaymentSummary, navigationBuilder => navigationBuilder.WithOwner());
 
         builder.Property(order => order.Subtotal).HasColumnType("decimal(18,2)");
+        builder.Property(order => order.Discount).HasColumnType("decimal(18,2)");
         builder.Property(order => order.OrderDate).HasConversion(
             orderDate => orderDate.ToUniversalTime(),
             orderDate => DateTime.SpecifyKind(orderDate, DateTimeKind.Utc));

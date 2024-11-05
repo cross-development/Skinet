@@ -1,8 +1,8 @@
 import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable, Subscription } from 'rxjs';
+import { firstValueFrom, map, Observable, tap } from 'rxjs';
 import { Product } from '../../shared/models/product';
-import { Cart, CartItem } from '../../shared/models/cart';
+import { Cart, CartItem, Coupon } from '../../shared/models/cart';
 import { ProductTotals } from '../../shared/models/productTotals';
 import { DeliveryMethod } from '../../shared/models/deliveryMethod';
 import { environment } from '../../../environments/environment';
@@ -24,9 +24,19 @@ export class CartService {
 
     if (!cart) return null;
 
-    const shipping = delivery ? delivery.price : 0;
-    const discount = 0;
     const subtotal = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    let discount = 0;
+
+    if (cart.coupon) {
+      if (cart.coupon.amountOff) {
+        discount = cart.coupon.amountOff;
+      } else if (cart.coupon.percentOff) {
+        discount = subtotal * (cart.coupon.percentOff / 100);
+      }
+    }
+
+    const shipping = delivery ? delivery.price : 0;
     const total = subtotal + shipping - discount;
 
     return { subtotal, shipping, discount, total };
@@ -42,13 +52,13 @@ export class CartService {
     );
   }
 
-  public setCart(cart: Cart): Subscription {
-    return this.httpClient.post<Cart>(environment.apiUrl + 'cart', cart).subscribe({
-      next: cart => this.cart.set(cart),
-    });
+  public setCart(cart: Cart): Observable<Cart> {
+    return this.httpClient
+      .post<Cart>(environment.apiUrl + 'cart', cart)
+      .pipe(tap(cart => this.cart.set(cart)));
   }
 
-  public addItemToCart(item: CartItem | Product, quantity: number = 1): void {
+  public async addItemToCart(item: CartItem | Product, quantity: number = 1): Promise<void> {
     const cart = this.cart() ?? this.createCart();
 
     if (this.isProduct(item)) {
@@ -57,10 +67,10 @@ export class CartService {
 
     cart.items = this.addOrUpdateItem(cart.items, item, quantity);
 
-    this.setCart(cart);
+    await firstValueFrom(this.setCart(cart));
   }
 
-  public removeItemFromCart(productId: number, quantity = 1): void {
+  public async removeItemFromCart(productId: number, quantity = 1): Promise<void> {
     const cart = this.cart();
 
     if (!cart) return;
@@ -78,7 +88,7 @@ export class CartService {
     if (cart.items.length === 0) {
       this.deleteCart();
     } else {
-      this.setCart(cart);
+      await firstValueFrom(this.setCart(cart));
     }
   }
 
@@ -90,6 +100,10 @@ export class CartService {
         this.cart.set(null);
       },
     });
+  }
+
+  public applyDiscount(code: string): Observable<Coupon> {
+    return this.httpClient.get<Coupon>(environment.apiUrl + 'coupons/' + code);
   }
 
   private isProduct(item: CartItem | Product): item is Product {

@@ -1,11 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { JsonPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCard } from '@angular/material/card';
-import { MatInput } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
-import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { AccountService } from '../../../core/services/account.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
 import { PASSWORD_PATTERN } from '../../../shared/constants/input';
@@ -14,17 +11,7 @@ import { TextInputComponent } from '../../../shared/components/text-input/text-i
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    JsonPipe,
-    MatCard,
-    MatFormField,
-    MatLabel,
-    MatInput,
-    MatButton,
-    MatError,
-    TextInputComponent,
-  ],
+  imports: [ReactiveFormsModule, MatCard, MatButton, TextInputComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })

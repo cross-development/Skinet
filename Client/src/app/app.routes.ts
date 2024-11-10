@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 import { orderCompleteGuard } from './core/guards/order-complete.guard';
 import { emptyCartGuardGuard } from './core/guards/empty-cart-guard.guard';
 import { HomeComponent } from './features/home/home.component';
@@ -8,6 +9,7 @@ import { ProductDetailsComponent } from './features/shop/product-details/product
 import { TestErrorComponent } from './features/test-error/test-error.component';
 import { CartComponent } from './features/cart/cart.component';
 import { OrderComponent } from './features/order/order.component';
+import { AdminComponent } from './features/admin/admin.component';
 import { CheckoutComponent } from './features/checkout/checkout.component';
 import { LoginComponent } from './features/account/login/login.component';
 import { RegisterComponent } from './features/account/register/register.component';
@@ -34,5 +36,6 @@ export const routes: Routes = [
   { path: 'test-error', component: TestErrorComponent },
   { path: 'not-found', component: NotFoundComponent },
   { path: 'server-error', component: ServerErrorComponent },
+  { path: 'admin', component: AdminComponent, canActivate: [authGuard, adminGuard] },
   { path: '**', redirectTo: 'not-found', pathMatch: 'full' },
 ];

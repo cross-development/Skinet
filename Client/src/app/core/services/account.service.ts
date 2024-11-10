@@ -1,4 +1,4 @@
-import { inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
 import { SignalrService } from './signalr.service';
@@ -14,6 +14,11 @@ export class AccountService {
   private signalrService: SignalrService = inject(SignalrService);
 
   public currentUser: WritableSignal<User | null> = signal<User | null>(null);
+  public isAdmin: Signal<boolean> = computed(() => {
+    const roles = this.currentUser()?.roles;
+
+    return Array.isArray(roles) ? roles.includes('Admin') : roles === 'Admin';
+  });
 
   public login(values: any): Observable<User> {
     let params = new HttpParams();

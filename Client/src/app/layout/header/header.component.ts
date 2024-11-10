@@ -10,6 +10,7 @@ import { BusyService } from '../../core/services/busy.service';
 import { CartService } from '../../core/services/cart.service';
 import { AccountService } from '../../core/services/account.service';
 import { User } from '../../shared/models/user';
+import { IsAdminDirective } from '../../shared/directives/is-admin.directive';
 
 @Component({
   selector: 'app-header',
@@ -25,6 +26,7 @@ import { User } from '../../shared/models/user';
     MatMenu,
     MatDivider,
     MatMenuItem,
+    IsAdminDirective,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',

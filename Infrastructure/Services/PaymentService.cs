@@ -5,15 +5,22 @@ using Core.Entities;
 
 namespace Infrastructure.Services;
 
-public class PaymentService(IConfiguration configuration, ICartService cartService, IUnitOfWork unitOfWork)
-    : IPaymentService
+public class PaymentService : IPaymentService
 {
+    private readonly ICartService _cartService;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public PaymentService(IConfiguration configuration, ICartService cartService, IUnitOfWork unitOfWork)
+    {
+        _cartService = cartService;
+        _unitOfWork = unitOfWork;
+
+        StripeConfiguration.ApiKey = configuration["StripeSettings:SecretKey"];
+    }
+
     public async Task<ShoppingCart?> CreateOrUpdatePaymentIntent(string cartId)
     {
-        StripeConfiguration.ApiKey = configuration["StripeSettings:SecretKey"];
-
-        var cart = await cartService.GetCartAsync(cartId)
-                   ?? throw new Exception("Cart unavailable");
+        var cart = await _cartService.GetCartAsync(cartId) ?? throw new Exception("Cart unavailable");
 
         var shippingPrice = await GetShippingPriceAsync(cart) ?? 0;
 
@@ -30,9 +37,23 @@ public class PaymentService(IConfiguration configuration, ICartService cartServi
 
         await CreateUpdatePaymentIntentAsync(cart, total);
 
-        await cartService.SetCartAsync(cart);
+        await _cartService.SetCartAsync(cart);
 
         return cart;
+    }
+
+    public async Task<string> RefundPayment(string paymentIntentId)
+    {
+        var refundOptions = new RefundCreateOptions
+        {
+            PaymentIntent = paymentIntentId
+        };
+
+        var refundService = new RefundService();
+
+        var result = await refundService.CreateAsync(refundOptions);
+
+        return result.Status;
     }
 
     private async Task CreateUpdatePaymentIntentAsync(ShoppingCart cart, long total)
@@ -94,7 +115,7 @@ public class PaymentService(IConfiguration configuration, ICartService cartServi
     {
         foreach (var cartItem in cart.Items)
         {
-            var productItem = await unitOfWork.Repository<Core.Entities.Product>()
+            var productItem = await _unitOfWork.Repository<Core.Entities.Product>()
                                   .GetByIdAsync(cartItem.ProductId)
                               ?? throw new Exception("Problem getting product in cart");
 
@@ -112,7 +133,7 @@ public class PaymentService(IConfiguration configuration, ICartService cartServi
             return null;
         }
 
-        var deliveryMethod = await unitOfWork.Repository<DeliveryMethod>()
+        var deliveryMethod = await _unitOfWork.Repository<DeliveryMethod>()
                                  .GetByIdAsync((int)cart.DeliveryMethodId)
                              ?? throw new Exception("Problem with delivery method");
 

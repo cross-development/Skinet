@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Core.Specifications;
 using Core.Interfaces;
 using Core.Entities;
+using API.RequestHelpers;
 
 namespace API.Controllers;
 
 public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
 {
+    [ResponseCache(Duration = 600)]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
        [FromQuery] ProductSpecificationParams productSpecParams)
@@ -18,6 +20,7 @@ public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
             productSpecParams.PageIndex, productSpecParams.PageSize);
     }
 
+    [ResponseCache(Duration = 600)]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
@@ -31,6 +34,7 @@ public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
         return Ok(product);
     }
 
+    [InvalidateCache("api/products|")]
     [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<Product>> CreateProduct(Product product)
@@ -47,6 +51,7 @@ public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
         return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
     }
 
+    [InvalidateCache("api/products|")]
     [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult> UpdateProduct(int id, Product product)
@@ -75,6 +80,7 @@ public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
         return NoContent();
     }
 
+    [InvalidateCache("api/products|")]
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteProduct(int id)
@@ -98,6 +104,7 @@ public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
         return NoContent();
     }
 
+    [ResponseCache(Duration = 10000)]
     [HttpGet("brands")]
     public async Task<ActionResult<IEnumerable<string>>> GetBrands()
     {
@@ -108,6 +115,7 @@ public class ProductsController(IUnitOfWork unitOfWork) : BaseApiController
         return Ok(brands);
     }
 
+    [ResponseCache(Duration = 10000)]
     [HttpGet("types")]
     public async Task<ActionResult<IEnumerable<string>>> GetTypes()
     {
